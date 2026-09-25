@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Security headers are enforced via real HTTP response headers (see
+      vite.config.js `server.headers` for localhost and the Netlify / Vercel
+      snippets there for production). Two directives can ONLY be delivered
+      that way, so they are intentionally NOT present as <meta> tags:
+      - `frame-ancestors` inside a <meta> CSP is ignored by browsers.
+      - `X-Frame-Options` inside a <meta> tag is ignored (header-only).
+      The <meta name="referrer"> below IS valid in HTML and stays.
+    -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <title>Beauty Store Admin Panel</title>
+    <!-- Inter is self-hosted (public/fonts/inter.woff2) with @font-face in
+      src/index.css. No Google Fonts CDN request is made, so no SRI/subresource
+      exposure applies. (Background: Google Fonts does not publish SRI hashes
+      for its CSS API, which is why self-hosting is the fix.) -->
+    <link
+      rel="preload"
+      href="/fonts/inter.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body class="bg-gray-50 text-gray-900 font-sans antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
