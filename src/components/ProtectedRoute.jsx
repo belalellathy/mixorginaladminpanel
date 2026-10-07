@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-dvh bg-gray-50">
         <div className="flex flex-col items-center space-y-3">
           <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
           <p className="text-sm text-gray-500 font-medium">Verifying admin access...</p>

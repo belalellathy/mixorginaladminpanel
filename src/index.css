@@ -23,6 +23,17 @@
   }
 }
 
+@layer utilities {
+  /* Utility to hide scrollbars on swipeable tabs/horizontal rows */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 /* Custom scrollbar for data tables and panels */
 ::-webkit-scrollbar {
   width: 6px;

@@ -42,9 +42,9 @@ export default function OrderStatusBadge({ status, className = '' }) {
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${config.classes} ${className}`}
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${config.classes} ${className}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${config.dot}`}></span>
+      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 flex-shrink-0 ${config.dot}`}></span>
       {config.label}
     </span>
   )

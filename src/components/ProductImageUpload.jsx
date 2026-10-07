@@ -49,17 +49,18 @@ export default function ProductImageUpload({ value, onChange, error }) {
       </label>
 
       {value ? (
-        <div className="relative inline-block border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm group">
+        <div className="relative inline-block w-full sm:w-auto max-w-[240px] border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm group">
           <img
             src={value}
             alt="Product"
-            className="w-40 h-40 object-cover rounded-lg"
+            className="w-full sm:w-40 aspect-square object-cover rounded-lg"
           />
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-full shadow-md text-gray-600 hover:text-red-600 transition-colors"
+            className="absolute top-2 right-2 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/95 rounded-full shadow-md text-gray-600 hover:text-red-600 transition-colors"
             title="Remove image"
+            aria-label="Remove image"
           >
             <X className="w-4 h-4" />
           </button>
