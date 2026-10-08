@@ -120,7 +120,7 @@ export default function Orders() {
           </div>
           <button
             onClick={loadOrders}
-            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors flex-shrink-0 min-h-[44px]"
+            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors flex-shrink-0 min-h-[44px] md:min-h-0"
           >
             <RefreshCw className="w-4 h-4 text-gray-500" />
             <span className="hidden sm:inline">Refresh</span>
@@ -136,7 +136,7 @@ export default function Orders() {
                 <button
                   key={tab.id}
                   onClick={(e) => handleTabChange(tab.id, e)}
-                  className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] flex items-center ${
+                  className={`py-3 px-1 border-b-2 text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] md:min-h-0 flex items-center ${
                     isActive
                       ? 'border-gray-900 text-gray-900 font-semibold'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -161,7 +161,7 @@ export default function Orders() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search by customer name or phone..."
-              className="block w-full pl-9 pr-3 py-2.5 md:py-2 border border-gray-300 rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 shadow-sm min-h-[44px]"
+              className="block w-full pl-9 pr-3 py-2.5 md:py-2 border border-gray-300 rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 shadow-sm min-h-[44px] md:min-h-0"
             />
           </div>
 
@@ -207,7 +207,7 @@ export default function Orders() {
                 {orders.map((order) => (
                   <div
                     key={order.id}
-                    className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 min-h-[44px]"
+                    className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 min-h-[44px] md:min-h-0"
                   >
                     {/* Primary tap area navigating to detail */}
                     <div
@@ -254,7 +254,7 @@ export default function Orders() {
                       type="button"
                       onClick={() => setDeleteTarget(order)}
                       aria-label={`Delete order #${order.id.slice(0, 8)}`}
-                      className="min-w-[44px] min-h-[44px] p-2.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 flex items-center justify-center flex-shrink-0 transition-colors"
+                      className="min-w-[44px] md:min-w-0 min-h-[44px] md:min-h-0 p-2.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 flex items-center justify-center flex-shrink-0 transition-colors"
                       title="Delete order"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -342,7 +342,7 @@ export default function Orders() {
                   type="button"
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  className="flex items-center px-3 sm:px-3 py-2 sm:py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-colors min-h-[44px] min-w-[44px] justify-center"
+                  className="flex items-center px-3 sm:px-3 py-2 sm:py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-colors min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0 justify-center"
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Previous
@@ -351,7 +351,7 @@ export default function Orders() {
                   type="button"
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  className="flex items-center px-3 sm:px-3 py-2 sm:py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-colors min-h-[44px] min-w-[44px] justify-center"
+                  className="flex items-center px-3 sm:px-3 py-2 sm:py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-colors min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0 justify-center"
                 >
                   Next
                   <ChevronRight className="w-4 h-4 ml-1" />

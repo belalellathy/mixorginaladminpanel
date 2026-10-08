@@ -115,7 +115,7 @@ export default function Dashboard() {
         <p className="text-sm text-red-600 mb-4">{error}</p>
         <button
           onClick={loadStats}
-          className="inline-flex items-center px-3.5 py-2 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors min-h-[44px]"
+          className="inline-flex items-center px-3.5 py-2 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors min-h-[44px] md:min-h-0"
         >
           <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
           Retry
@@ -138,7 +138,7 @@ export default function Dashboard() {
         </div>
         <button
           onClick={loadStats}
-          className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors flex-shrink-0 min-h-[44px]"
+          className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors flex-shrink-0 min-h-[44px] md:min-h-0"
         >
           <RefreshCw className="w-4 h-4 text-gray-500" />
           <span className="hidden sm:inline">Refresh</span>
@@ -331,7 +331,7 @@ export default function Dashboard() {
           </div>
           <Link
             to="/orders"
-            className="text-xs font-semibold text-gray-700 hover:text-black hover:underline min-h-[44px] flex items-center"
+            className="text-xs font-semibold text-gray-700 hover:text-black hover:underline min-h-[44px] md:min-h-0 flex items-center"
           >
             View all orders &rarr;
           </Link>
@@ -357,7 +357,7 @@ export default function Dashboard() {
                   }
                 }}
                 aria-label={`View order #${order.id.slice(0, 8)}`}
-                className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition-colors flex flex-col space-y-2.5 min-h-[44px]"
+                className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer transition-colors flex flex-col space-y-2.5 min-h-[44px] md:min-h-0"
               >
                 {/* Card Top: Order ID & Date */}
                 <div className="flex items-center justify-between text-xs text-gray-500">

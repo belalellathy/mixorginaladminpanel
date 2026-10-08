@@ -51,7 +51,7 @@ export default function TopBar({ isSidebarOpen = false, onToggle, toggleRef }) {
         <button
           onClick={logout}
           aria-label="Sign out"
-          className="flex items-center justify-center space-x-1.5 text-sm text-gray-600 hover:text-red-600 px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-red-50 border border-transparent hover:border-red-100 transition-colors font-medium min-h-[40px] min-w-[40px]"
+          className="flex items-center justify-center space-x-1.5 text-sm text-gray-600 hover:text-red-600 px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-red-50 border border-transparent hover:border-red-100 transition-colors font-medium min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0"
           title="Sign out"
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
