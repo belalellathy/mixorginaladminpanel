@@ -133,41 +133,41 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-dvh bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md min-w-0">
         <div className="flex justify-center">
           <div className="w-12 h-12 rounded-xl bg-gray-900 text-white flex items-center justify-center shadow-md">
             <Sparkles className="w-6 h-6" />
           </div>
         </div>
-        <h2 className="mt-4 text-center text-2xl font-bold tracking-tight text-gray-900">
+        <h2 className="mt-4 text-center text-2xl font-bold tracking-tight text-gray-900 min-w-0 break-words">
           Mix Originals Admin
         </h2>
-        <p className="mt-1 text-center text-sm text-gray-500">
+        <p className="mt-1 text-center text-sm text-gray-500 min-w-0 break-words">
           Sign in to access your store dashboard and operations
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 shadow-sm border border-gray-200 rounded-xl sm:px-10">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md min-w-0">
+        <div className="bg-white p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200 rounded-xl min-w-0">
           {authError && (
-            <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200 flex items-start space-x-3">
+            <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200 flex items-start space-x-3 min-w-0">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-red-700 font-medium">
+              <div className="text-sm text-red-700 font-medium min-w-0 break-words">
                 {authError}
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 min-w-0">
+            <div className="min-w-0">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
                 Email Address
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="mt-1 relative rounded-md shadow-sm min-w-0">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-4 w-4 text-gray-400" />
                 </div>
@@ -175,8 +175,9 @@ export default function Login() {
                   id="email"
                   type="email"
                   autoComplete="email"
+                  inputMode="email"
                   {...register('email')}
-                  className={`block w-full pl-10 pr-3 py-2 border rounded-lg text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                  className={`block w-full pl-10 pr-3 py-2 border rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-1 ${
                     errors.email
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:border-gray-900 focus:ring-gray-900'
@@ -185,20 +186,20 @@ export default function Login() {
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-xs text-red-600 font-medium">
+                <p className="mt-1 text-xs text-red-600 font-medium min-w-0 break-words">
                   {errors.email.message}
                 </p>
               )}
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
                 Password
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="mt-1 relative rounded-md shadow-sm min-w-0">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="w-4 h-4 text-gray-400" />
                 </div>
@@ -207,7 +208,7 @@ export default function Login() {
                   type="password"
                   autoComplete="current-password"
                   {...register('password')}
-                  className={`block w-full pl-10 pr-3 py-2 border rounded-lg text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                  className={`block w-full pl-10 pr-3 py-2 border rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:ring-1 ${
                     errors.password
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:border-gray-900 focus:ring-gray-900'
@@ -216,17 +217,17 @@ export default function Login() {
                 />
               </div>
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600 font-medium">
+                <p className="mt-1 text-xs text-red-600 font-medium min-w-0 break-words">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
-            <div>
+            <div className="min-w-0">
               <button
                 type="submit"
                 disabled={isSubmitting || isLocked}
-                className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center items-center min-h-[44px] md:min-h-0 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 transition-colors"
               >
                 {isSubmitting ? (
                   <>
@@ -238,7 +239,7 @@ export default function Login() {
                 )}
               </button>
               {isLocked && (
-                <p className="mt-2 text-xs text-red-600 font-medium text-center">
+                <p className="mt-2 text-xs text-red-600 font-medium text-center min-w-0 break-words">
                   Too many attempts. Try again in {cooldownRemaining}s.
                 </p>
               )}
