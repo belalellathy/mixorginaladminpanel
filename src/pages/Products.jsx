@@ -96,83 +96,84 @@ export default function Products() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between min-w-0">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 min-w-0 break-words">
             Products Catalog
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1 min-w-0 break-words">
             Manage your Mix Originals inventory, prices, images, and promotions
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-0 md:space-x-3 min-w-0">
           <button
             onClick={loadProducts}
-            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors"
+            className="flex items-center justify-center space-x-2 px-3 py-2 min-h-[44px] md:min-h-0 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors w-full md:w-auto"
           >
-            <RefreshCw className="w-4 h-4 text-gray-500" />
+            <RefreshCw className="w-4 h-4 text-gray-500 flex-shrink-0" />
             <span>Refresh</span>
           </button>
 
           <Link
             to="/products/new"
-            className="flex items-center space-x-1.5 px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-black shadow-sm transition-colors"
+            className="flex items-center justify-center space-x-1.5 px-4 py-2 min-h-[44px] md:min-h-0 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-black shadow-sm transition-colors w-full md:w-auto"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 flex-shrink-0" />
             <span>Add Product</span>
           </Link>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-4 min-w-0">
+        <div className="relative w-full md:flex-1 md:max-w-md min-w-0">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
           <input
-            type="text"
+            type="search"
+            inputMode="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search products by title..."
-            className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 shadow-sm"
+            className="block w-full min-h-[44px] md:min-h-0 pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 shadow-sm"
           />
         </div>
 
-        <span className="text-xs font-medium text-gray-500">
+        <span className="text-xs font-medium text-gray-500 min-w-0 break-words">
           Showing {products.length} products
         </span>
       </div>
 
       {/* Error state */}
       {error && (
-        <div className="rounded-xl bg-red-50 p-4 border border-red-200 flex items-start space-x-3">
+        <div className="rounded-xl bg-red-50 p-4 border border-red-200 flex items-start space-x-3 min-w-0">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-red-700">
+          <div className="text-sm text-red-700 min-w-0 break-words">
             <p className="font-semibold">Unable to fetch products</p>
-            <p>{error}</p>
+            <p className="min-w-0 break-words">{error}</p>
           </div>
         </div>
       )}
 
       {/* Products Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto min-h-[300px]">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-w-0">
+        <div className="min-h-[300px] min-w-0">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24">
               <Loader2 className="w-8 h-8 text-gray-800 animate-spin mb-3" />
               <p className="text-sm font-medium text-gray-500">Loading products...</p>
             </div>
           ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center px-4">
+            <div className="flex flex-col items-center justify-center py-24 text-center px-4 min-w-0">
               <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-3">
                 <Package className="w-6 h-6" />
               </div>
-              <p className="text-base font-semibold text-gray-900">No products found</p>
-              <p className="text-sm text-gray-500 max-w-sm mt-1">
+              <p className="text-base font-semibold text-gray-900 min-w-0 break-words">No products found</p>
+              <p className="text-sm text-gray-500 max-w-sm mt-1 min-w-0 break-words">
                 {searchTerm
                   ? `No products matched "${searchTerm}". Try a different name.`
                   : 'Start by creating your first store product.'}
@@ -180,14 +181,16 @@ export default function Products() {
               {!searchTerm && (
                 <Link
                   to="/products/new"
-                  className="mt-4 inline-flex items-center px-3.5 py-2 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-black"
+                  className="mt-4 inline-flex items-center justify-center min-h-[44px] md:min-h-0 px-3.5 py-2 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-black"
                 >
-                  <Plus className="w-4 h-4 mr-1.5" />
+                  <Plus className="w-4 h-4 mr-1.5 flex-shrink-0" />
                   Add First Product
                 </Link>
               )}
             </div>
           ) : (
+            <>
+              <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
               <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500 tracking-wider">
                 <tr>
@@ -316,6 +319,104 @@ export default function Products() {
                 })}
               </tbody>
             </table>
+              </div>
+
+              {/* Cards below md (same data source) */}
+              <div className="md:hidden divide-y divide-gray-100 bg-white">
+                {products.map((product) => {
+                  const hasImage = !!product.image_url
+                  const isFeatured = !!product.is_featured
+
+                  return (
+                    <div key={product.id} className="p-4 min-w-0">
+                      <div className="flex gap-3 min-w-0">
+                        {hasImage ? (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded-lg border border-gray-200 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+                            <Package className="w-6 h-6" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-gray-900 text-sm truncate">
+                            {product.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5 min-w-0">
+                            {product.categories ? (
+                              <span
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 min-w-0 max-w-full"
+                                style={{
+                                  borderColor: product.categories.accent_color || '#e5e7eb',
+                                  borderLeftWidth: '3px',
+                                }}
+                              >
+                                <span className="truncate">{product.categories.name}</span>
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                Number(product.stock) > 5
+                                  ? 'bg-green-50 text-green-700'
+                                  : Number(product.stock) > 0
+                                  ? 'bg-yellow-50 text-yellow-700'
+                                  : 'bg-red-50 text-red-700'
+                              }`}
+                            >
+                              {product.stock} in stock
+                            </span>
+                          </div>
+                          <p className="font-semibold text-gray-900 text-sm mt-1.5 min-w-0 break-words">
+                            EGP {Number(product.price || 0).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleFeatured(product, e)}
+                          title={isFeatured ? 'Remove from featured' : 'Mark as featured'}
+                          aria-label={isFeatured ? 'Remove from featured' : 'Mark as featured'}
+                          className={`flex items-center justify-center min-h-[44px] min-w-[44px] p-2 rounded-lg border transition-colors ${
+                            isFeatured
+                              ? 'bg-amber-50 text-amber-500 border-amber-200 hover:bg-amber-100'
+                              : 'bg-gray-50 text-gray-300 border-gray-200 hover:text-gray-500 hover:bg-gray-100'
+                          }`}
+                        >
+                          <Star
+                            className="w-4 h-4"
+                            fill={isFeatured ? 'currentColor' : 'none'}
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/products/${product.id}/edit`)}
+                          title="Edit product"
+                          aria-label="Edit product"
+                          className="flex items-center justify-center min-h-[44px] min-w-[44px] p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProductToDelete(product)}
+                          title="Delete product"
+                          aria-label="Delete product"
+                          className="flex items-center justify-center min-h-[44px] min-w-[44px] p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
           )}
         </div>
       </div>
