@@ -149,7 +149,7 @@ export default function Login() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md min-w-0">
-        <div className="bg-white p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200 rounded-xl min-w-0">
+        <div className="bg-white p-4 sm:py-8 sm:px-10 shadow-sm border border-gray-200 rounded-xl min-w-0">
           {authError && (
             <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200 flex items-start space-x-3 min-w-0">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
