@@ -58,7 +58,7 @@ export default function ProductImageUpload({ value, onChange, error }) {
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute top-2 right-2 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/95 rounded-full shadow-md text-gray-600 hover:text-red-600 transition-colors"
+            className="absolute top-2 right-2 p-2.5 min-w-[44px] md:min-w-0 min-h-[44px] md:min-h-0 flex items-center justify-center bg-white/95 rounded-full shadow-md text-gray-600 hover:text-red-600 transition-colors"
             title="Remove image"
             aria-label="Remove image"
           >

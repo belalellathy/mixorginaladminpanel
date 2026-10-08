@@ -166,7 +166,7 @@ export default function OrderDetail() {
       <div className="space-y-4 min-w-0">
         <Link
           to="/orders"
-          className="inline-flex min-h-[44px] min-w-[44px] items-center py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+          className="inline-flex min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0 items-center py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Orders
         </Link>
@@ -188,7 +188,7 @@ export default function OrderDetail() {
         <div className="min-w-0">
           <Link
             to="/orders"
-            className="inline-flex min-h-[44px] min-w-[44px] items-center py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 uppercase tracking-wider mb-2"
+            className="inline-flex min-h-[44px] md:min-h-0 min-w-[44px] md:min-w-0 items-center py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 uppercase tracking-wider mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1 flex-shrink-0" /> Back to Orders
           </Link>
@@ -468,12 +468,12 @@ export default function OrderDetail() {
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
                 placeholder="e.g. TRK-98492019"
-                className="w-full min-h-[44px] px-3 py-2 border border-gray-300 rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+                className="w-full min-h-[44px] md:min-h-0 px-3 py-2 border border-gray-300 rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
               />
               <button
                 type="submit"
                 disabled={isUpdatingTracking}
-                className="w-full flex items-center justify-center min-h-[44px] py-2 px-3 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-black disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center min-h-[44px] md:min-h-0 py-2 px-3 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-black disabled:opacity-50 transition-colors"
               >
                 {isUpdatingTracking ? (
                   <>
@@ -500,12 +500,12 @@ export default function OrderDetail() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add private operational notes about this order..."
-                className="w-full min-h-[44px] px-3 py-2 border border-gray-300 rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 resize-none"
+                className="w-full min-h-[44px] md:min-h-0 px-3 py-2 border border-gray-300 rounded-lg text-base md:text-sm bg-white placeholder-gray-400 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 resize-none"
               />
               <button
                 type="submit"
                 disabled={isUpdatingNotes}
-                className="w-full flex items-center justify-center min-h-[44px] py-2 px-3 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50 transition-colors"
+                className="w-full flex items-center justify-center min-h-[44px] md:min-h-0 py-2 px-3 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50 transition-colors"
               >
                 {isUpdatingNotes ? (
                   <>
@@ -554,7 +554,7 @@ export default function OrderDetail() {
                     target="_blank"
                     rel="noopener noreferrer"
                     download
-                    className="w-full flex items-center justify-center min-h-[44px] py-2 px-3 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors"
+                    className="w-full flex items-center justify-center min-h-[44px] md:min-h-0 py-2 px-3 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors"
                   >
                     <Download className="w-3.5 h-3.5 mr-1.5 text-gray-500 flex-shrink-0" />
                     Download Screenshot
@@ -577,7 +577,7 @@ export default function OrderDetail() {
         <button
           type="button"
           onClick={() => setShowDeleteDialog(true)}
-          className="flex w-full sm:w-auto items-center justify-center min-h-[44px] space-x-2 px-4 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors"
+          className="flex w-full sm:w-auto items-center justify-center min-h-[44px] md:min-h-0 space-x-2 px-4 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors"
         >
           <Trash2 className="w-4 h-4 flex-shrink-0" />
           <span>Delete Order</span>

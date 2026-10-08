@@ -39,10 +39,10 @@ export default function Sidebar({ isOpen = false, onClose }) {
         : {
             'aria-label': 'Sidebar navigation',
           })}
-      className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 transition-transform motion-reduce:transition-none duration-300 ease-in-out ${
+      className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 sidebar-drawer transition-transform motion-reduce:transition-none duration-300 ease-in-out ${
         isOpen
-          ? 'translate-x-0 shadow-2xl visible'
-          : '-translate-x-full lg:translate-x-0 invisible lg:visible'
+          ? 'drawer-open translate-x-0 shadow-2xl visible'
+          : 'drawer-closed -translate-x-full lg:translate-x-0 invisible lg:visible'
       }`}
     >
       {/* Brand Header */}
@@ -84,7 +84,7 @@ export default function Sidebar({ isOpen = false, onClose }) {
                 if (onClose) onClose()
               }}
               className={({ isActive }) =>
-                `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors min-h-[44px] ${
+                `flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors min-h-[44px] md:min-h-0 ${
                   isActive
                     ? 'bg-gray-100 text-gray-900 font-semibold'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

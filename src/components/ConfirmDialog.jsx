@@ -134,7 +134,7 @@ export default function ConfirmDialog({
               type="button"
               disabled={isLoading}
               onClick={onCancel}
-              className="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors disabled:opacity-50 min-h-[44px] flex items-center justify-center"
+              className="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors disabled:opacity-50 min-h-[44px] md:min-h-0 flex items-center justify-center"
             >
               {cancelText}
             </button>
@@ -143,7 +143,7 @@ export default function ConfirmDialog({
               type="button"
               disabled={isLoading}
               onClick={onConfirm}
-              className={`w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none transition-colors disabled:opacity-50 min-h-[44px] flex items-center justify-center ${
+              className={`w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none transition-colors disabled:opacity-50 min-h-[44px] md:min-h-0 flex items-center justify-center ${
                 isDestructive
                   ? 'bg-red-600 hover:bg-red-700 focus:ring-2 focus:ring-red-400'
                   : 'bg-gray-900 hover:bg-black focus:ring-2 focus:ring-gray-400'
