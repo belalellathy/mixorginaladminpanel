@@ -378,6 +378,81 @@ export async function updateCategory(id, categoryData) {
 }
 
 /**
+ * Shipping Rates API — per-governorate delivery prices (fixed 27-row reference set).
+ * No INSERT/DELETE exists for this table; only price/is_active are updatable.
+ */
+
+const SHIPPING_RATES_COLUMNS =
+  'id, code, name_en, name_ar, price, is_active, sort_order'
+
+function normalizeShippingPrice(value) {
+  // PostgREST returns numeric(10,2) as a string; normalize so comparisons
+  // and formatting in the UI operate on real numbers. NULL stays NULL.
+  if (value === null || value === undefined) return null
+  return Number(value)
+}
+
+export async function fetchShippingRates() {
+  const { data, error } = await supabase
+    .from('shipping_rates')
+    .select(SHIPPING_RATES_COLUMNS)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('[Admin Error] Could not load shipping rates.')
+    throw new Error('Failed to load data. Please refresh the page.')
+  }
+  return (data || []).map((row) => ({
+    ...row,
+    price: normalizeShippingPrice(row.price),
+  }))
+}
+
+export async function updateShippingRate(id, changes) {
+  // Column grants allow UPDATE only on (price, is_active); including any
+  // other column in the payload fails with 42501, so whitelist strictly.
+  const payload = {}
+  if (changes && Object.prototype.hasOwnProperty.call(changes, 'price')) {
+    payload.price = changes.price
+  }
+  if (changes && Object.prototype.hasOwnProperty.call(changes, 'is_active')) {
+    payload.is_active = changes.is_active
+  }
+
+  const { data, error } = await supabase
+    .from('shipping_rates')
+    .update(payload)
+    .eq('id', id)
+    .select('id, price, is_active')
+    .maybeSingle()
+
+  if (error) {
+    console.error('[Admin Error] Could not save shipping rate.')
+    const code = error.code || ''
+    const message = String(error.message || '')
+    if (
+      code === '23514' ||
+      message.includes('shipping_rates_active_requires_price')
+    ) {
+      throw new Error('Set a price before activating this governorate')
+    }
+    if (code === '42501') {
+      throw new Error('You do not have permission to update shipping prices')
+    }
+    throw new Error('Could not save. Please try again.')
+  }
+
+  // RLS: a non-admin UPDATE returns success with zero rows (no error),
+  // so no row coming back means the caller lacked permission.
+  if (!data) {
+    console.error('[Admin Error] Could not save shipping rate.')
+    throw new Error('You do not have permission to update shipping prices')
+  }
+
+  return { ...data, price: normalizeShippingPrice(data.price) }
+}
+
+/**
  * Dashboard Stats
  */
 

@@ -9,6 +9,7 @@ import OrderDetail from "./pages/OrderDetail";
 import Products from "./pages/Products";
 import AddEditProduct from "./pages/AddEditProduct";
 import Categories from "./pages/Categories";
+import ShippingRates from "./pages/ShippingRates";
 import PaymentSettings from "./pages/PaymentSettings";
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/products/new" element={<AddEditProduct />} />
           <Route path="/products/:id/edit" element={<AddEditProduct />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/shipping" element={<ShippingRates />} />
           <Route path="/payment-settings" element={<PaymentSettings />} />
         </Route>
       </Route>

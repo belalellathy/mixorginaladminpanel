@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   Package,
   Tags,
+  Truck,
   CreditCard,
   Sparkles,
   X,
@@ -15,6 +16,7 @@ const navItems = [
   { name: 'Orders', path: '/orders', icon: ShoppingCart },
   { name: 'Products', path: '/products', icon: Package },
   { name: 'Categories', path: '/categories', icon: Tags },
+  { name: 'Shipping', path: '/shipping', icon: Truck },
   { name: 'Payment Settings', path: '/payment-settings', icon: CreditCard },
 ]
 
