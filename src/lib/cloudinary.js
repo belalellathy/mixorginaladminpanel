@@ -1,77 +1,107 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { supabase } from './supabase'
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
+/**
+ * Uploads an image file to Cloudinary inside the 'product-images' folder
+ * via a signed upload. Signature params come from the Supabase Edge
+ * Function `cloudinary-sign`, so Cloudinary credentials never reach the
+ * browser bundle.
+ *
+ * @param {File|Blob} file - The file to upload.
+ * @returns {Promise<string>} The secure_url returned by Cloudinary.
+ */
+export async function uploadProductImage(file) {
+  if (!file) {
+    throw new Error('No file provided for upload.')
   }
 
-  // Reject anything but POST explicitly (BUG-10 in the audit flagged this too)
-  if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405, headers: CORS_HEADERS });
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+  if (!supabaseUrl) {
+    throw new Error(
+      'Supabase URL is missing. Please verify VITE_SUPABASE_URL in your .env file.'
+    )
   }
 
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
+  // Step 1: get signed upload params (authenticated admins only).
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession()
+
+  if (sessionError) {
+    throw new Error(sessionError.message || 'Failed to read session.')
   }
 
-  // Verify the JWT is real and get the user it belongs to
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
-    { global: { headers: { Authorization: authHeader } } }
-  );
-
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-  if (authError || !user) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
+  const token = session?.access_token
+  if (!token) {
+    throw new Error('You must be signed in as an admin to upload images.')
   }
 
-  // Verify that user is actually an admin, not just any logged-in account
-  const { data: admin, error: adminError } = await supabaseClient
-    .from("admins")
-    .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
+  let signParams
+  try {
+    const signResponse = await fetch(
+      `${supabaseUrl.replace(/\/$/, '')}/functions/v1/cloudinary-sign`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
 
-  if (adminError || !admin) {
-    return new Response(
-      JSON.stringify({ error: "Forbidden: admin access required" }),
-      { status: 403, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-    );
+    if (signResponse.status === 401) {
+      throw new Error('Unauthorized: admin sign-in required for uploads.')
+    }
+
+    if (!signResponse.ok) {
+      const errBody = await signResponse.json().catch(() => ({}))
+      throw new Error(
+        errBody.error ||
+          `Failed to get upload signature (status: ${signResponse.status})`
+      )
+    }
+
+    signParams = await signResponse.json()
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error('Could not reach the upload signing service.')
+    }
+    throw err
   }
 
-  // Only now proceed to mint the Cloudinary signature
-  const CLOUD_API_SECRET = Deno.env.get("CLOUDINARY_API_SECRET")!;
-  const CLOUD_API_KEY = Deno.env.get("CLOUDINARY_API_KEY")!;
-  const CLOUD_NAME = Deno.env.get("CLOUDINARY_CLOUD_NAME")!;
+  const { timestamp, signature, api_key, cloud_name, folder } = signParams || {}
+  if (!timestamp || !signature || !api_key || !cloud_name) {
+    throw new Error('Upload signing service returned an invalid response.')
+  }
 
-  const timestamp = Math.round(Date.now() / 1000);
-  const folder = "product-images";
+  // Step 2: upload directly to Cloudinary with the signed params.
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('api_key', api_key)
+  formData.append('timestamp', String(timestamp))
+  formData.append('signature', signature)
+  formData.append('folder', folder || 'product-images')
 
-  const stringToSign = `folder=${folder}&timestamp=${timestamp}${CLOUD_API_SECRET}`;
+  const uploadResponse = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+    {
+      method: 'POST',
+      body: formData,
+    }
+  )
 
-  const msgBuffer = new TextEncoder().encode(stringToSign);
-  const hashBuffer = await crypto.subtle.digest("SHA-1", msgBuffer);
-  const signature = Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  if (!uploadResponse.ok) {
+    const errorData = await uploadResponse.json().catch(() => ({}))
+    throw new Error(
+      errorData.error?.message ||
+        `Failed to upload image (status: ${uploadResponse.status})`
+    )
+  }
 
-  return new Response(
-    JSON.stringify({ timestamp, signature, api_key: CLOUD_API_KEY, cloud_name: CLOUD_NAME, folder }),
-    { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-  );
-});
+  const data = await uploadResponse.json()
+  if (!data.secure_url) {
+    throw new Error('Cloudinary response did not return a secure_url.')
+  }
+
+  return data.secure_url
+}
