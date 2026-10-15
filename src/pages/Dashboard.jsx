@@ -27,6 +27,18 @@ import {
 import { getDashboardStats, getDisplayError } from '../lib/supabase'
 import OrderStatusBadge from '../components/OrderStatusBadge'
 
+// All six statuses from the orders CHECK constraint at 0. Destructure
+// defaults (`= {}`) only apply to undefined, so null from the RPC is merged
+// over these zeros instead.
+const ZERO_COUNTS = {
+  pending: 0,
+  payment_review: 0,
+  confirmed: 0,
+  shipped: 0,
+  delivered: 0,
+  rejected: 0,
+}
+
 // Reusable date & currency formatting helpers
 const formatCurrency = (amount) => `EGP ${Number(amount || 0).toFixed(2)}`
 const formatDate = (dateStr) =>
@@ -62,13 +74,23 @@ export default function Dashboard() {
   }, [loadStats])
 
   const {
-    total_orders = 0,
-    revenue_today = 0,
-    revenueThisMonth = 0,
-    statusCounts = {},
-    last7DaysChart = [],
-    recentOrders = [],
-  } = useMemo(() => stats || {}, [stats])
+    total_orders,
+    revenue_today,
+    revenueThisMonth,
+    statusCounts,
+    last7DaysChart,
+    recentOrders,
+  } = useMemo(() => {
+    const s = stats || {}
+    return {
+      total_orders: s.total_orders ?? 0,
+      revenue_today: s.revenue_today ?? 0,
+      revenueThisMonth: s.revenueThisMonth ?? 0,
+      statusCounts: { ...ZERO_COUNTS, ...(s.statusCounts ?? {}) },
+      last7DaysChart: s.last7DaysChart ?? [],
+      recentOrders: s.recentOrders ?? [],
+    }
+  }, [stats])
 
   const handleOrderClick = useCallback(
     (orderId) => navigate(`/orders/${orderId}`),
