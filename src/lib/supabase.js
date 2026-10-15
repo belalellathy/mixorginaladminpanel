@@ -216,7 +216,24 @@ export async function updateOrderNotes(id, notes) {
 }
 
 export async function deleteOrder(orderId, paymentScreenshotPath) {
-  // 1. Delete payment screenshot from storage if exists (best-effort)
+  // Delete the order row only. ON DELETE CASCADE removes order_items AFTER
+  // the BEFORE DELETE trigger has restored stock; deleting items first
+  // would leave the trigger with nothing to read and silently skip the restore.
+  const { data, error } = await supabase
+    .from('orders')
+    .delete()
+    .eq('id', orderId)
+    .select('id')
+
+  if (error) throw new Error(error.message)
+
+  // RLS: a non-admin DELETE returns success with zero rows (no error).
+  if (!data || data.length === 0) {
+    throw new Error('Order not found or you do not have permission to delete it.')
+  }
+
+  // Only after the DB delete succeeds, remove the payment screenshot
+  // (best-effort) so a failed delete can't leave the order without its proof.
   if (paymentScreenshotPath) {
     // Normalise: strip any leading "receipts/" to avoid doubling the prefix
     const cleanPath = paymentScreenshotPath.startsWith('receipts/')
@@ -225,24 +242,8 @@ export async function deleteOrder(orderId, paymentScreenshotPath) {
     await supabase.storage
       .from('payment-screenshots')
       .remove([cleanPath])
-    // Ignore storage errors — proceed with DB delete regardless
+    // Ignore storage errors — DB delete already succeeded
   }
-
-  // 2. Delete order items first (in case ON DELETE CASCADE is not configured)
-  const { error: itemsError } = await supabase
-    .from('order_items')
-    .delete()
-    .eq('order_id', orderId)
-
-  if (itemsError) throw new Error(itemsError.message)
-
-  // 3. Delete the order itself
-  const { error } = await supabase
-    .from('orders')
-    .delete()
-    .eq('id', orderId)
-
-  if (error) throw new Error(error.message)
 }
 
 export async function getPaymentScreenshotSignedUrl(orderOrPath) {
