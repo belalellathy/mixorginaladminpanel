@@ -459,5 +459,25 @@ export async function updateShippingRate(id, changes) {
 export const getDashboardStats = async () => {
   const { data, error } = await supabase.rpc('get_dashboard_stats')
   if (error) throw error
-  return data
+  // Aggregations over an empty orders table come back NULL, so normalize
+  // every field here; `= {}` defaults at the call site can't catch null.
+  const stats = data ?? {}
+  const rawCounts = stats.statusCounts ?? {}
+  return {
+    ...stats,
+    total_orders: stats.total_orders ?? 0,
+    revenue_today: stats.revenue_today ?? 0,
+    revenueThisMonth: stats.revenueThisMonth ?? 0,
+    // All six CHECK-constraint statuses always present (0 when absent).
+    statusCounts: {
+      pending: rawCounts.pending ?? 0,
+      payment_review: rawCounts.payment_review ?? 0,
+      confirmed: rawCounts.confirmed ?? 0,
+      shipped: rawCounts.shipped ?? 0,
+      delivered: rawCounts.delivered ?? 0,
+      rejected: rawCounts.rejected ?? 0,
+    },
+    last7DaysChart: stats.last7DaysChart ?? [],
+    recentOrders: stats.recentOrders ?? [],
+  }
 }
