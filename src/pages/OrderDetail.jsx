@@ -181,6 +181,15 @@ export default function OrderDetail() {
     )
   }
 
+  // Use != null (not truthiness) because a 0 shipping fee is valid.
+  const hasShippingFee = order.shipping_price != null
+  const grandTotal = Number(order.total_price)
+  const shippingFee = Number(order.shipping_price)
+  // Cents math avoids float errors when deriving the products subtotal.
+  const productsSubtotal = (Math.round(grandTotal * 100) - Math.round(shippingFee * 100)) / 100
+  const showBreakdown =
+    hasShippingFee && Number.isFinite(grandTotal) && Number.isFinite(productsSubtotal)
+
   return (
     <div className="space-y-8 min-w-0">
       {/* Back button & Title bar */}
@@ -375,14 +384,51 @@ export default function OrderDetail() {
             </div>
 
             {/* Total Price Bar */}
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-wrap gap-2 justify-between items-center min-w-0">
-              <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider min-w-0 break-words">
-                Total Amount Paid
-              </span>
-              <span className="text-xl font-bold text-gray-900 min-w-0 break-words">
-                EGP {Number(order.total_price || 0).toFixed(2)}
-              </span>
-            </div>
+            {showBreakdown ? (
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 space-y-2 min-w-0">
+                <div className="flex flex-wrap gap-2 justify-between items-center min-w-0">
+                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider min-w-0 break-words">
+                    Subtotal (products)
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900 min-w-0 break-words">
+                    EGP {productsSubtotal.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-between items-center min-w-0">
+                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider min-w-0 break-words">
+                    Shipping
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900 min-w-0 break-words">
+                    {shippingFee === 0 ? 'Free' : `EGP ${shippingFee.toFixed(2)}`}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-between items-center min-w-0 pt-2 border-t border-gray-200">
+                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider min-w-0 break-words">
+                    Total Amount Paid
+                  </span>
+                  <span className="text-xl font-bold text-gray-900 min-w-0 break-words">
+                    EGP {grandTotal.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-wrap gap-2 justify-between items-center min-w-0">
+                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider min-w-0 break-words">
+                    Total Amount Paid
+                  </span>
+                  <span className="text-xl font-bold text-gray-900 min-w-0 break-words">
+                    EGP {Number(order.total_price || 0).toFixed(2)}
+                  </span>
+                </div>
+                {/* Legacy orders predate shipping fees, so show a note instead of "Free". */}
+                {!hasShippingFee && (
+                  <p className="bg-gray-50 px-6 pb-4 text-xs text-gray-400 min-w-0 break-words">
+                    Placed before shipping fees were introduced.
+                  </p>
+                )}
+              </>
+            )}
           </div>
 
           {/* Customer Details Card */}
@@ -450,6 +496,21 @@ export default function OrderDetail() {
                   <MapPin className="w-3.5 h-3.5 mr-1.5 text-gray-400 flex-shrink-0 mt-0.5" />
                   <span className="min-w-0 break-words">{order.address || 'N/A'}</span>
                 </p>
+              </div>
+
+              <div className="min-w-0">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
+                  Delivery governorate
+                </span>
+                {order.shipping_name ? (
+                  <p className="font-medium text-gray-900 mt-1 min-w-0 break-words">
+                    {order.shipping_name}
+                  </p>
+                ) : (
+                  <p className="font-medium text-gray-400 mt-1 min-w-0 break-words">
+                    Not recorded
+                  </p>
+                )}
               </div>
             </div>
           </div>
