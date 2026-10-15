@@ -11,6 +11,7 @@ import AddEditProduct from "./pages/AddEditProduct";
 import Categories from "./pages/Categories";
 import ShippingRates from "./pages/ShippingRates";
 import PaymentSettings from "./pages/PaymentSettings";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   useAdmin(); // ← called once here only
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/shipping" element={<ShippingRates />} />
           <Route path="/payment-settings" element={<PaymentSettings />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
     </Routes>
