@@ -11,14 +11,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 /**
  * S10 — Map raw Supabase/PostgREST errors to generic user-facing strings.
- * Always logs the full error for debugging, never leaks it to the UI.
+ * Logs only a static action label plus a non-sensitive code/status; never
+ * the error object itself or anything derived from user input.
  *
  * @param {unknown} error - The caught error.
  * @param {'delete'|'save'|'load'} [context] - Operation kind.
  * @returns {string} Generic display message.
  */
 export function getDisplayError(error, context) {
-  console.error('[Admin Error]', error)
+  const code = error?.code ?? error?.status
+  console.error(`[Admin Error] ${context ?? 'unknown'} failed${code === undefined ? '' : ` (${code})`}`)
   switch (context) {
     case 'delete':
       return 'Failed to delete. Please try again.'

@@ -124,7 +124,9 @@ export default function Login() {
       const redirectTo = location.state?.from?.pathname || '/'
       navigate(redirectTo, { replace: true })
     } catch (err) {
-      console.error('Login error:', err)
+      // Never log the caught error object: auth errors can carry status,
+      // request details, or credential context.
+      console.error('login failed')
       // S8 — single generic message for every failure path.
       setAuthError(GENERIC_LOGIN_ERROR)
     } finally {
