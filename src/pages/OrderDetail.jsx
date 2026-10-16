@@ -299,7 +299,8 @@ export default function OrderDetail() {
                       const unitPrice = Number(item.unit_price) || 0
                       const qty = Number(item.quantity) || 1
                       const subtotal = unitPrice * qty
-                      const productName = item.products?.name || `Product #${item.product_id?.slice(0, 8)}`
+                      // Snapshot survives product deletion; live join covers legacy rows; static label is last resort.
+                      const productName = item.product_name || item.products?.name || 'Deleted product'
                       const productImg = item.products?.image_url
 
                       return (
@@ -350,7 +351,8 @@ export default function OrderDetail() {
                   const unitPrice = Number(item.unit_price) || 0
                   const qty = Number(item.quantity) || 1
                   const subtotal = unitPrice * qty
-                  const productName = item.products?.name || `Product #${item.product_id?.slice(0, 8)}`
+                  // Snapshot survives product deletion; live join covers legacy rows; static label is last resort.
+                  const productName = item.product_name || item.products?.name || 'Deleted product'
                   const productImg = item.products?.image_url
 
                   return (

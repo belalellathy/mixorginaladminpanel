@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Plus,
@@ -39,20 +39,35 @@ export default function Products() {
     return () => clearTimeout(handler)
   }, [searchInput])
 
+  // Guards against stale responses / set-state-after-unmount: only the
+  // latest request may write state; effect cleanup invalidates in-flight work.
+  const requestIdRef = useRef(0)
+
   const loadProducts = useCallback(async () => {
+    const requestId = ++requestIdRef.current
     setIsLoading(true)
     setError(null)
     try {
       const data = await fetchAllProducts(searchTerm)
+      if (requestIdRef.current !== requestId) return
       setProducts(data)
     } catch (err) {
+      if (requestIdRef.current !== requestId) return
+      // Generic message only — never render raw Supabase error text.
       setError(getDisplayError(err, 'load'))
     } finally {
-      setIsLoading(false)
+      if (requestIdRef.current === requestId) setIsLoading(false)
     }
   }, [searchTerm])
 
   useEffect(() => {
+    loadProducts()
+    return () => {
+      requestIdRef.current += 1
+    }
+  }, [loadProducts])
+
+  const handleRetry = useCallback(() => {
     loadProducts()
   }, [loadProducts])
 
@@ -85,12 +100,22 @@ export default function Products() {
     if (!productToDelete) return
     setIsDeleting(true)
     try {
+      // Remove the row only after the server confirms the delete.
       await deleteProduct(productToDelete.id)
       setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id))
-      setProductToDelete(null)
     } catch (err) {
-      setError(getDisplayError(err, 'delete'))
+      if (err && err.code === '23503') {
+        setError("This product is part of existing orders and can't be deleted.")
+      } else if (err && err.code === 'NOT_FOUND_OR_BLOCKED') {
+        // Refetch first so the UI shows true server state, then explain.
+        // (loadProducts clears error at start, so the message goes after.)
+        await loadProducts()
+        setError('Product could not be deleted. It may already be removed or you lack permission.')
+      } else {
+        setError(getDisplayError(err, 'delete'))
+      }
     } finally {
+      setProductToDelete(null)
       setIsDeleting(false)
     }
   }
@@ -149,12 +174,20 @@ export default function Products() {
       </div>
 
       {/* Error state */}
-      {error && (
+      {!isLoading && error && (
         <div className="rounded-xl bg-red-50 p-4 border border-red-200 flex items-start space-x-3 min-w-0">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-red-700 min-w-0 break-words">
+          <div className="text-sm text-red-700 min-w-0 break-words flex-1">
             <p className="font-semibold">Unable to fetch products</p>
             <p className="min-w-0 break-words">{error}</p>
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="mt-2 inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-100 transition-colors min-h-[44px] md:min-h-0"
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
+              Retry
+            </button>
           </div>
         </div>
       )}
@@ -166,6 +199,15 @@ export default function Products() {
             <div className="flex flex-col items-center justify-center py-24">
               <Loader2 className="w-8 h-8 text-gray-800 animate-spin mb-3" />
               <p className="text-sm font-medium text-gray-500">Loading products...</p>
+            </div>
+          ) : error && products.length === 0 ? (
+            // Single error action lives in the banner above (Retry); this
+            // static note just holds the card layout, never the empty copy.
+            <div className="flex flex-col items-center justify-center py-24 text-center px-4 min-w-0">
+              <p className="text-base font-semibold text-gray-900 min-w-0 break-words">Something went wrong</p>
+              <p className="text-sm text-gray-500 max-w-sm mt-1 min-w-0 break-words">
+                We couldn&apos;t load products. Please try again.
+              </p>
             </div>
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center px-4 min-w-0">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -62,21 +62,56 @@ export default function Orders() {
     return () => clearTimeout(handler)
   }, [searchInput])
 
+  // Guards against stale responses / set-state-after-unmount: only the
+  // latest request may write state; effect cleanup invalidates in-flight work.
+  const requestIdRef = useRef(0)
+
   const loadOrders = useCallback(async () => {
+    const requestId = ++requestIdRef.current
+    // When true, a setCurrentPage below retriggers this effect to refetch,
+    // so this run must not touch isLoading — the next run owns it.
+    let willRefetch = false
     setIsLoading(true)
     setError(null)
     try {
       const data = await fetchAllOrders(activeTab, searchTerm, currentPage, PAGE_SIZE)
+      if (requestIdRef.current !== requestId) return
+      // Clamp: totalCount may have shrunk (e.g. deletes by another admin),
+      // leaving currentPage out of range. Step to the last valid page; the
+      // currentPage change retriggers this effect to refetch.
+      const maxPage = Math.max(1, Math.ceil((data.totalCount || 0) / PAGE_SIZE))
+      if (currentPage > maxPage) {
+        willRefetch = true
+        setCurrentPage(maxPage)
+        return
+      }
       setOrders(data.orders)
       setTotalCount(data.totalCount)
     } catch (err) {
+      if (requestIdRef.current !== requestId) return
+      // Out-of-range .range() before totalCount is known (PostgREST 416 /
+      // PGRST103): reset to page 1 and retry once via the effect. Guarded by
+      // currentPage > 1 so the page-1 refetch cannot loop back here.
+      if (err && err.code === 'PGRST103' && currentPage > 1) {
+        willRefetch = true
+        setCurrentPage(1)
+        return
+      }
+      // Generic message only — never render raw Supabase error text.
       setError(getDisplayError(err, 'load'))
     } finally {
-      setIsLoading(false)
+      if (requestIdRef.current === requestId && !willRefetch) setIsLoading(false)
     }
   }, [activeTab, searchTerm, currentPage])
 
   useEffect(() => {
+    loadOrders()
+    return () => {
+      requestIdRef.current += 1
+    }
+  }, [loadOrders])
+
+  const handleRetry = useCallback(() => {
     loadOrders()
   }, [loadOrders])
 
@@ -95,15 +130,23 @@ export default function Orders() {
     setIsDeleting(true)
     try {
       await deleteOrder(deleteTarget.id, deleteTarget.receipt_path ?? deleteTarget.payment_screenshot_url)
-      setOrders((prev) => prev.filter((o) => o.id !== deleteTarget.id))
-      setTotalCount((prev) => Math.max(prev - 1, 0))
       setDeleteTarget(null)
+      // If the deleted row was the last one on this page, step back one
+      // page (the currentPage change retriggers loadOrders); otherwise
+      // update optimistically in place.
+      if (orders.length <= 1 && currentPage > 1) {
+        setTotalCount((prev) => Math.max(prev - 1, 0))
+        setCurrentPage((prev) => Math.max(1, prev - 1))
+      } else {
+        setOrders((prev) => prev.filter((o) => o.id !== deleteTarget.id))
+        setTotalCount((prev) => Math.max(prev - 1, 0))
+      }
     } catch (err) {
       setError(getDisplayError(err, 'delete'))
     } finally {
       setIsDeleting(false)
     }
-  }, [deleteTarget])
+  }, [deleteTarget, orders.length, currentPage])
 
   return (
     <>
@@ -171,12 +214,20 @@ export default function Orders() {
         </div>
 
         {/* Error state */}
-        {error && (
+        {!isLoading && error && (
           <div className="rounded-xl bg-red-50 p-4 border border-red-200 flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-red-700">
+            <div className="text-sm text-red-700 flex-1">
               <p className="font-semibold">Unable to fetch orders</p>
               <p>{error}</p>
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="mt-2 inline-flex items-center px-3 py-1.5 text-xs font-semibold text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-100 transition-colors min-h-[44px] md:min-h-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                Retry
+              </button>
             </div>
           </div>
         )}
@@ -187,6 +238,15 @@ export default function Orders() {
             <div className="flex flex-col items-center justify-center py-24">
               <Loader2 className="w-8 h-8 text-gray-800 animate-spin mb-3" />
               <p className="text-sm font-medium text-gray-500">Loading orders...</p>
+            </div>
+          ) : error && orders.length === 0 ? (
+            // Single error action lives in the banner above (Retry); this
+            // static note just holds the card layout, never the empty copy.
+            <div className="flex flex-col items-center justify-center py-24 text-center px-4">
+              <p className="text-base font-semibold text-gray-900">Something went wrong</p>
+              <p className="text-sm text-gray-500 max-w-sm mt-1">
+                We couldn&apos;t load orders. Please try again.
+              </p>
             </div>
           ) : orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center px-4">
@@ -329,7 +389,9 @@ export default function Orders() {
             </>
           )}
 
-          {/* Pagination footer */}
+          {/* Pagination footer — kept whenever rows are shown so a failed
+              DELETE (banner + stale rows) never traps the user without paging;
+              any page/tab/refresh navigation refetches and clears the error. */}
           {!isLoading && orders.length > 0 && (
             <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
               <span className="text-xs text-gray-500">

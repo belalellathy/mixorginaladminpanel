@@ -132,38 +132,42 @@ function validateCategoryName(value) {
  */
 
 export async function fetchAllOrders(status = 'all', search = '', page = 1, pageSize = 10) {
-  try {
-    const from = (page - 1) * pageSize
-    const to = from + pageSize - 1
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
 
-    // S7 — explicit columns only. `email` kept because Orders.jsx renders
-    // it (contact column). `receipt_path` is the storage path for order receipts.
-    let query = supabase
-      .from('orders')
-      .select(
-        'id, full_name, email, phone, total_price, status, created_at, receipt_path',
-        { count: 'exact' }
-      )
-      .order('created_at', { ascending: false })
+  // S7 — explicit columns only. `email` kept because Orders.jsx renders
+  // it (contact column). `receipt_path` is the storage path for order receipts.
+  let query = supabase
+    .from('orders')
+    .select(
+      'id, full_name, email, phone, total_price, status, created_at, receipt_path',
+      { count: 'exact' }
+    )
+    .order('created_at', { ascending: false })
 
-    if (status && status !== 'all') {
-      query = query.eq('status', status)
-    }
-
-    const clean = sanitizeSearch(search)
-    if (clean) {
-      query = query.or(`full_name.ilike.%${clean}%,phone.ilike.%${clean}%`)
-    }
-
-    query = query.range(from, to)
-
-    const { data, count, error } = await query
-    if (error) throw error
-    return { orders: data || [], totalCount: count || 0 }
-  } catch (error) {
-    console.error('[Admin Error]', error)
-    return { orders: [], totalCount: 0 }
+  if (status && status !== 'all') {
+    query = query.eq('status', status)
   }
+
+  const clean = sanitizeSearch(search)
+  if (clean) {
+    query = query.or(`full_name.ilike.%${clean}%,phone.ilike.%${clean}%`)
+  }
+
+  query = query.range(from, to)
+
+  const { data, count, error } = await query
+  if (error) {
+    // Log a static string only — never the raw error object (avoids
+    // leaking Supabase internals into logs/telemetry consumers).
+    console.error('fetchAllOrders failed')
+    const errOut = new Error('Failed to load orders')
+    // Preserve the PostgREST code (e.g. PGRST103 range error) so callers
+    // can distinguish an out-of-range page without seeing raw details.
+    if (error.code) errOut.code = error.code
+    throw errOut
+  }
+  return { orders: data || [], totalCount: count || 0 }
 }
 
 export const fetchOrderById = async (id) => {
@@ -277,28 +281,27 @@ export async function getPaymentScreenshotSignedUrl(orderOrPath) {
  */
 
 export async function fetchAllProducts(search = '') {
-  try {
-    // S7 — explicit columns. `description` + categories join kept because
-    // Products.jsx renders them.
-    let query = supabase
-      .from('products')
-      .select(
-        'id, name, description, price, stock, category_id, image_url, is_featured, created_at, categories(id, name, slug, accent_color)'
-      )
-      .order('created_at', { ascending: false })
+  // S7 — explicit columns. `description` + categories join kept because
+  // Products.jsx renders them.
+  let query = supabase
+    .from('products')
+    .select(
+      'id, name, description, price, stock, category_id, image_url, is_featured, created_at, categories(id, name, slug, accent_color)'
+    )
+    .order('created_at', { ascending: false })
 
-    const clean = sanitizeSearch(search)
-    if (clean) {
-      query = query.ilike('name', `%${clean}%`)
-    }
-
-    const { data, error } = await query
-    if (error) throw error
-    return data || []
-  } catch (error) {
-    console.error('[Admin Error]', error)
-    return []
+  const clean = sanitizeSearch(search)
+  if (clean) {
+    query = query.ilike('name', `%${clean}%`)
   }
+
+  const { data, error } = await query
+  if (error) {
+    // Log a static string only — never the raw error object.
+    console.error('fetchAllProducts failed')
+    throw new Error('Failed to load products')
+  }
+  return data || []
 }
 
 export async function fetchProductById(id) {
@@ -338,13 +341,28 @@ export async function updateProduct(id, productData) {
 }
 
 export async function deleteProduct(id) {
-  const { error } = await supabase
+  // .select('id') is required: a PostgREST DELETE that matches zero rows
+  // (RLS-filtered, already deleted, wrong id) still returns success with no
+  // error, so only returned rows prove a row was actually deleted.
+  const { data, error } = await supabase
     .from('products')
     .delete()
     .eq('id', id)
+    .select('id')
 
-  if (error) throw error
-  return true
+  if (error) {
+    console.error('deleteProduct failed')
+    const errOut = new Error('Failed to delete product')
+    if (error.code) errOut.code = error.code
+    throw errOut
+  }
+
+  if (!data || data.length === 0) {
+    console.error('deleteProduct failed')
+    const errOut = new Error('Product could not be deleted')
+    errOut.code = 'NOT_FOUND_OR_BLOCKED'
+    throw errOut
+  }
 }
 
 /**
