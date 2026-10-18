@@ -1,25 +1,61 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Exact origins allowed to call this function from a browser. This endpoint
-// mints upload credentials, so "*" is intentionally not used: a wildcard
-// would let any site obtain signatures with a stolen bearer token.
-const ALLOWED_ORIGINS = [
+const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "https://mixorginaladminpanel.vercel.app",
 ];
 
+const envAllowed = Deno.env.get("ALLOWED_ORIGINS");
+const parsedOrigins = envAllowed
+  ? envAllowed
+      .split(",")
+      .map((o) => o.trim())
+      .filter((o) => o.length > 0 && o !== "*" && o !== "null")
+  : [];
+const ALLOWED_ORIGINS: string[] =
+  parsedOrigins.length > 0 ? parsedOrigins : DEFAULT_ALLOWED_ORIGINS;
+
+function compileOriginPattern(): RegExp | null {
+  const pattern = Deno.env.get("ALLOWED_ORIGIN_PATTERN");
+  if (!pattern) return null;
+  try {
+    return new RegExp(pattern);
+  } catch {
+    console.error("Invalid ALLOWED_ORIGIN_PATTERN regex configured");
+    return null;
+  }
+}
+
+const ALLOWED_ORIGIN_PATTERN: RegExp | null = compileOriginPattern();
+
+function isOriginAllowed(origin: string): boolean {
+  if (!origin || origin === "null" || origin === "*") {
+    return false;
+  }
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    return true;
+  }
+  if (
+    ALLOWED_ORIGIN_PATTERN !== null &&
+    origin.length <= 200 &&
+    ALLOWED_ORIGIN_PATTERN.test(origin)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function corsHeadersFor(req: Request): Record<string, string> {
-  const base = {
+  const base: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers":
       "authorization, content-type, apikey, x-client-info",
+    "Vary": "Origin",
   };
-  // Reflect the Origin only when allowlisted; otherwise omit
-  // Access-Control-Allow-Origin so the browser blocks the response.
   const origin = req.headers.get("Origin") ?? "";
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    return { ...base, "Access-Control-Allow-Origin": origin, "Vary": "Origin" };
+  if (isOriginAllowed(origin)) {
+    return { ...base, "Access-Control-Allow-Origin": origin };
   }
   return base;
 }
