@@ -1,6 +1,68 @@
 import { supabase } from './supabase'
 
 /**
+ * Best-effort destruction of a previously uploaded product image via the
+ * admin-only `cloudinary-delete` Edge Function.
+ *
+ * Never throws and never blocks: callers fire this after a successful DB
+ * operation and ignore the boolean result — a failed cleanup must not fail
+ * the product save/delete that already succeeded. Logs one generic warning
+ * with no URLs, tokens, or response bodies.
+ *
+ * @param {string} imageUrl - The full secure_url previously stored on the row.
+ * @returns {Promise<boolean>} true only if Cloudinary confirmed destruction.
+ */
+export async function deleteProductImage(imageUrl) {
+  if (typeof imageUrl !== 'string' || imageUrl.length === 0) {
+    return false
+  }
+
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) {
+      console.warn('Cloudinary image cleanup failed')
+      return false
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+    if (!supabaseUrl) {
+      console.warn('Cloudinary image cleanup failed')
+      return false
+    }
+
+    const response = await fetch(
+      `${supabaseUrl.replace(/\/$/, '')}/functions/v1/cloudinary-delete`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image_url: imageUrl }),
+      }
+    )
+
+    if (!response.ok) {
+      console.warn('Cloudinary image cleanup failed')
+      return false
+    }
+
+    const data = await response.json().catch(() => null)
+    if (!data || data.deleted !== true) {
+      console.warn('Cloudinary image cleanup failed')
+      return false
+    }
+    return true
+  } catch {
+    console.warn('Cloudinary image cleanup failed')
+    return false
+  }
+}
+
+/**
  * Uploads an image file to Cloudinary inside the 'product-images' folder
  * via a signed upload. Signature params come from the Supabase Edge
  * Function `cloudinary-sign`, so Cloudinary credentials never reach the

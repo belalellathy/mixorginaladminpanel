@@ -282,6 +282,18 @@ export async function getPaymentScreenshotSignedUrl(orderOrPath) {
  * Products API
  */
 
+// Fire-and-forget Cloudinary cleanup. Loaded via dynamic import on first use:
+// cloudinary.js already imports the supabase client from this module, so a
+// static import here would create a circular dependency (and a Rollup build
+// warning) — lazy loading avoids both, and the promise carries its own catch
+// so cleanup can never reject or delay the DB operation it follows.
+export function cleanupCloudinaryImage(imageUrl) {
+  if (typeof imageUrl !== 'string' || imageUrl.length === 0) return
+  import('./cloudinary')
+    .then((m) => m.deleteProductImage(imageUrl))
+    .catch(() => {})
+}
+
 export async function fetchAllProducts(search = '') {
   // S7 — explicit columns. `description` + categories join kept because
   // Products.jsx renders them.
@@ -331,6 +343,34 @@ export async function insertProduct(productData) {
 }
 
 export async function updateProduct(id, productData) {
+  // Best-effort read of the current image URL first. A failed read is ignored
+  // — we simply can't identify an orphanable image, so the update proceeds.
+  let previousImageUrl = ''
+  try {
+    const { data: prev, error: prevError } = await supabase
+      .from('products')
+      .select('image_url')
+      .eq('id', id)
+      .maybeSingle()
+    if (!prevError && typeof prev?.image_url === 'string') {
+      previousImageUrl = prev.image_url
+    }
+  } catch {
+    // ignore — cleanup is optional, never a precondition
+  }
+
+  // Store the condition now so the post-update cleanup cannot be affected by
+  // later mutations of the payload object.
+  // NOTE: cleanup fires only when the payload EXPLICITLY carries image_url and
+  // it differs from the stored one (replacing, clearing, or swapping a URL).
+  // Payloads omitting image_url (e.g. the featured toggle) never touch the
+  // image — deleting on an absent key would destroy the product's live image.
+  const shouldCleanupImage =
+    previousImageUrl.length > 0 &&
+    productData != null &&
+    'image_url' in productData &&
+    productData.image_url !== previousImageUrl
+
   const { data, error } = await supabase
     .from('products')
     .update(productData)
@@ -339,10 +379,34 @@ export async function updateProduct(id, productData) {
     .single()
 
   if (error) throw error
+
+  // Only after a confirmed update: destroy the old Cloudinary asset
+  // (best-effort, never throws, result ignored).
+  if (shouldCleanupImage) {
+    void cleanupCloudinaryImage(previousImageUrl)
+  }
+
   return data
 }
 
 export async function deleteProduct(id) {
+  // Best-effort read of the current image URL before the row disappears, so
+  // the Cloudinary asset can be cleaned up afterwards. A failed read must not
+  // block the delete — cleanup just gets skipped.
+  let previousImageUrl = ''
+  try {
+    const { data: prev, error: prevError } = await supabase
+      .from('products')
+      .select('image_url')
+      .eq('id', id)
+      .maybeSingle()
+    if (!prevError && typeof prev?.image_url === 'string') {
+      previousImageUrl = prev.image_url
+    }
+  } catch {
+    // ignore — cleanup is optional, never a precondition
+  }
+
   // .select('id') is required: a PostgREST DELETE that matches zero rows
   // (RLS-filtered, already deleted, wrong id) still returns success with no
   // error, so only returned rows prove a row was actually deleted.
@@ -365,6 +429,10 @@ export async function deleteProduct(id) {
     errOut.code = 'NOT_FOUND_OR_BLOCKED'
     throw errOut
   }
+
+  // Delete confirmed successful — clean up the Cloudinary asset best-effort
+  // (never throws, never rejects, result ignored).
+  void cleanupCloudinaryImage(previousImageUrl)
 }
 
 /**
