@@ -7,7 +7,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from 'lucide-react'
-import { supabase, getDisplayError } from '../lib/supabase'
+import { supabase, getDisplayError, isValidationError } from '../lib/supabase'
 
 const FIELDS = [
   { key: 'payment_instapay', label: 'Instapay number / phone', placeholder: 'e.g. 01xxxxxxxxx', inputMode: 'tel', autoComplete: 'off', spellCheck: false },
@@ -75,16 +75,31 @@ export default function PaymentSettings() {
     try {
       for (const { key } of FIELDS) {
         const newValue = values[key] ?? ''
-        const { error } = await supabase
+        // RLS: a denied UPDATE still returns success with zero affected rows
+        // and no error, so .maybeSingle() + a null check is the only way to
+        // prove the write happened (same pattern as updateShippingRate).
+        const { data, error } = await supabase
           .from('store_settings')
           .update({ value: newValue, updated_at: new Date().toISOString() })
           .eq('key', key)
+          .select('key, value')
+          .maybeSingle()
 
         if (error) throw error
+
+        if (!data) {
+          // Tagged with the repo's passthrough convention (err.code ===
+          // 'VALIDATION') so the catch can surface the specific message.
+          const err = new Error(
+            'You do not have permission to update payment settings'
+          )
+          err.code = 'VALIDATION'
+          throw err
+        }
       }
       showSuccess('Payment settings saved successfully.')
     } catch (err) {
-      setError(getDisplayError(err, 'save'))
+      setError(isValidationError(err) ? err.message : getDisplayError(err, 'save'))
     } finally {
       setIsSaving(false)
     }
