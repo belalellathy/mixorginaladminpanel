@@ -7,7 +7,6 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-  Image as ImageIcon,
 } from 'lucide-react'
 import { fetchAllCategories, updateCategory, getDisplayError, isValidationError } from '../lib/supabase'
 
@@ -143,7 +142,6 @@ export default function Categories() {
             <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
               <thead className="bg-gray-50 text-xs uppercase font-semibold text-gray-500 tracking-wider">
                 <tr>
-                  <th scope="col" className="px-6 py-3">Image</th>
                   <th scope="col" className="px-6 py-3">Category Name</th>
                   <th scope="col" className="px-6 py-3">Slug</th>
                   <th scope="col" className="px-6 py-3">Accent Color</th>
@@ -153,25 +151,9 @@ export default function Categories() {
               <tbody className="divide-y divide-gray-100 bg-white">
                 {categories.map((cat) => {
                   const isEditing = editingId === cat.id
-                  const hasImage = !!cat.image_url
 
                   return (
                     <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
-                      {/* Image Thumbnail */}
-                      <td className="px-6 py-4">
-                        {hasImage ? (
-                          <img
-                            src={cat.image_url}
-                            alt={cat.name}
-                            className="w-12 h-12 object-cover rounded-lg border border-gray-200"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
-                            <ImageIcon className="w-5 h-5" />
-                          </div>
-                        )}
-                      </td>
-
                       {/* Name (Inline editable) */}
                       <td className="px-6 py-4">
                         {isEditing ? (
