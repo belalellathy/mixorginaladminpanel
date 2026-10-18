@@ -36,14 +36,14 @@ import react from '@vitejs/plugin-react'
 // by the host in production — the host version additionally adds HSTS, which
 // must never be sent over plain-http localhost).
 const prodCsp =
-  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://res.cloudinary.com https://lvrjxjnbugrwinxrqpun.supabase.co; connect-src 'self' https://lvrjxjnbugrwinxrqpun.supabase.co https://api.cloudinary.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://res.cloudinary.com https://lvrjxjnbugrwinxrqpun.supabase.co; connect-src 'self' https://lvrjxjnbugrwinxrqpun.supabase.co https://api.cloudinary.com https://o4512278307471360.ingest.de.sentry.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
 // Relaxed policy for `vite dev` only: the dev server injects inline module
 // scripts and uses a ws:/wss: HMR websocket, so script-src needs
 // 'unsafe-inline' 'unsafe-eval' and connect-src needs ws:/wss:. Never copy
 // this relaxed policy to production.
 const devCsp =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co; connect-src 'self' ws: wss: https://*.supabase.co https://api.cloudinary.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co; connect-src 'self' ws: wss: https://*.supabase.co https://api.cloudinary.com https://o4512278307471360.ingest.de.sentry.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
 export default defineConfig({
   plugins: [react()],
