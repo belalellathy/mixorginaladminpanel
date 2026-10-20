@@ -17,7 +17,6 @@ import ConfirmDialog from '../components/ConfirmDialog'
 const TABS = [
   { id: 'all', label: 'All Orders' },
   { id: 'pending', label: 'Pending' },
-  { id: 'payment_review', label: 'Payment Review' },
   { id: 'confirmed', label: 'Confirmed' },
   { id: 'shipped', label: 'Shipped' },
   { id: 'delivered', label: 'Delivered' },

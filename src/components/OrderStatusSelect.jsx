@@ -2,7 +2,6 @@ import React from 'react'
 
 const ORDER_STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
-  { value: 'payment_review', label: 'Payment Review' },
   { value: 'confirmed', label: 'Confirmed' },
   { value: 'shipped', label: 'Shipped' },
   { value: 'delivered', label: 'Delivered' },

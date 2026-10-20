@@ -54,17 +54,19 @@ export function sanitizeSearch(input) {
  * enforce the same rules; this layer fails fast with a clear message).
  */
 export const FIELD_RULES = {
-  // Union of spec list + statuses actually used by the UI (payment_review).
-  // DB enum should enforce the same set.
+  // EXACT set from the live orders.status CHECK constraint as of 2026-10-20
+  // (documented in the storefront repo: supabase/migrations/
+  // 20261020172749_drop_payment_review_status.sql).
+  // 'payment_review' was removed from the DB CHECK (zero rows held it).
+  // 'processing' and 'cancelled' were pre-existing drift values never
+  // reachable via the UI dropdown and rejected by the DB — kept here only
+  // by mistake; this list now mirrors the DB CHECK one-to-one.
   STATUSES: [
     'pending',
-    'payment_review',
     'confirmed',
-    'processing',
     'shipped',
     'delivered',
     'rejected',
-    'cancelled',
   ],
   TRACKING_RE: /^[a-zA-Z0-9-]{0,100}$/,
   ACCENT_COLOR_RE: /^#[0-9a-fA-F]{6}$/,
@@ -557,10 +559,12 @@ export const getDashboardStats = async () => {
     total_orders: stats.total_orders ?? 0,
     revenue_today: stats.revenue_today ?? 0,
     revenueThisMonth: stats.revenueThisMonth ?? 0,
-    // All six CHECK-constraint statuses always present (0 when absent).
+    // All five CHECK-constraint statuses always present (0 when absent).
+    // Any extra key the RPC may still return post-migration (e.g. a stale
+    // 'payment_review' bucket) is simply not propagated — defensive by
+    // construction: rawCounts is normalized per key, unknown keys are ignored.
     statusCounts: {
       pending: rawCounts.pending ?? 0,
-      payment_review: rawCounts.payment_review ?? 0,
       confirmed: rawCounts.confirmed ?? 0,
       shipped: rawCounts.shipped ?? 0,
       delivered: rawCounts.delivered ?? 0,

@@ -12,7 +12,6 @@ export default {
       colors: {
         status: {
           pending: '#eab308',
-          payment_review: '#3b82f6',
           confirmed: '#22c55e',
           shipped: '#a855f7',
           delivered: '#6b7280',

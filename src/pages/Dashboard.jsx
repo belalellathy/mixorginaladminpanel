@@ -8,7 +8,6 @@ import {
   CheckCircle,
   Truck,
   CheckSquare,
-  Eye,
   AlertCircle,
   Loader2,
   RefreshCw,
@@ -27,12 +26,11 @@ import {
 import { getDashboardStats, getDisplayError } from '../lib/supabase'
 import OrderStatusBadge from '../components/OrderStatusBadge'
 
-// All six statuses from the orders CHECK constraint at 0. Destructure
+// All five statuses from the orders CHECK constraint at 0. Destructure
 // defaults (`= {}`) only apply to undefined, so null from the RPC is merged
 // over these zeros instead.
 const ZERO_COUNTS = {
   pending: 0,
-  payment_review: 0,
   confirmed: 0,
   shipped: 0,
   delivered: 0,
@@ -221,12 +219,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Status Breakdown Cards: 2 on mobile, 3 on sm, 6 on lg */}
+      {/* Status Breakdown Cards: 2 on mobile, 3 on sm, 5 on lg */}
       <div>
         <h2 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">
           Orders by Status
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-gray-200 shadow-sm min-w-0">
             <div className="flex items-center space-x-1.5 sm:space-x-2 text-yellow-600 text-xs font-semibold uppercase">
               <Clock className="w-4 h-4 flex-shrink-0" />
@@ -234,16 +232,6 @@ export default function Dashboard() {
             </div>
             <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-2">
               {statusCounts.pending || 0}
-            </p>
-          </div>
-
-          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-gray-200 shadow-sm min-w-0">
-            <div className="flex items-center space-x-1.5 sm:space-x-2 text-blue-600 text-xs font-semibold uppercase">
-              <Eye className="w-4 h-4 flex-shrink-0" />
-              <span className="whitespace-normal leading-tight">Payment Review</span>
-            </div>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-2">
-              {statusCounts.payment_review || 0}
             </p>
           </div>
 

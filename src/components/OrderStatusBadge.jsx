@@ -6,11 +6,6 @@ const STATUS_CONFIG = {
     classes: 'bg-yellow-50 text-yellow-800 border-yellow-200',
     dot: 'bg-yellow-500',
   },
-  payment_review: {
-    label: 'Payment Review',
-    classes: 'bg-blue-50 text-blue-800 border-blue-200',
-    dot: 'bg-blue-500',
-  },
   confirmed: {
     label: 'Confirmed',
     classes: 'bg-green-50 text-green-800 border-green-200',
