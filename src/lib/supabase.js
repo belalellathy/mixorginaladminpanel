@@ -184,7 +184,7 @@ export const fetchOrderById = async (id) => {
   return data
 }
 
-export async function updateOrderStatus(id, status, currentReceiptPath) {
+export async function updateOrderStatus(id, status) {
   validateStatus(status)
   const { data, error } = await supabase
     .from('orders')
@@ -194,33 +194,6 @@ export async function updateOrderStatus(id, status, currentReceiptPath) {
     .single()
 
   if (error) throw error
-
-  // Screenshot cleanup fires ONLY on these two exact statuses. 'shipped' is
-  // intentionally excluded — a shipped order may still need its payment proof
-  // until delivery is confirmed. Deliberately no 'terminal status' abstraction
-  // here: an explicit string match can never silently include 'shipped' or any
-  // future status. Future transitions only — no backfill of existing rows.
-  if ((status === 'delivered' || status === 'rejected') && currentReceiptPath) {
-    // Best-effort storage removal; the status UPDATE above is authoritative
-    // and must never fail because cleanup failed.
-    await removeReceiptFromStorage(currentReceiptPath)
-    try {
-      const { data: cleared, error: clearError } = await supabase
-        .from('orders')
-        .update({ receipt_path: null, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single()
-      if (clearError || !cleared) {
-        console.warn('[Admin Error] receipt_path clear failed (order status kept)')
-      }
-    } catch {
-      console.warn('[Admin Error] receipt_path clear failed (order status kept)')
-    }
-    // Sync the caller without a re-fetch: receipt_path is (or should have
-    // been) nulled even though the status UPDATE above did not touch it.
-    return { ...data, receipt_path: null }
-  }
 
   return data
 }
