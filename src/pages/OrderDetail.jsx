@@ -98,8 +98,15 @@ export default function OrderDetail() {
     setIsUpdatingStatus(true)
     setError(null)
     try {
-      await updateOrderStatus(id, newStatus)
-      setOrder((prev) => ({ ...prev, status: newStatus }))
+      // Pass the current receipt_path so delivered/rejected transitions clean
+      // up the screenshot server-side. Merge (don't fully replace) so the
+      // embedded order_items join from the initial fetch is retained.
+      const updated = await updateOrderStatus(id, newStatus, order?.receipt_path ?? null)
+      setOrder((prev) => ({ ...prev, ...updated }))
+      if (updated.receipt_path == null && (newStatus === 'delivered' || newStatus === 'rejected')) {
+        // Screenshot was removed server-side — drop the stale signed URL.
+        setSignedScreenshotUrl(null)
+      }
       showSuccess('Order status updated successfully.')
     } catch (err) {
       setError(isValidationError(err) ? err.message : getDisplayError(err, 'save'))
@@ -590,7 +597,16 @@ export default function OrderDetail() {
               Payment Proof
             </h3>
 
-            {signedScreenshotUrl ? (
+            {order.receipt_path == null &&
+            (order.status === 'delivered' || order.status === 'rejected') ? (
+              // Cleanup note: the screenshot was removed from storage after a
+              // delivered/rejected transition, so receipt_path is null.
+              <div className="py-8 px-4 text-center border-2 border-dashed border-gray-200 rounded-lg bg-gray-50 min-w-0">
+                <p className="text-xs text-gray-500 min-w-0 break-words">
+                  Screenshot removed after order was marked {order.status}.
+                </p>
+              </div>
+            ) : signedScreenshotUrl ? (
               screenshotError ? (
                 <div className="py-6 px-4 text-center border border-gray-200 rounded-lg bg-gray-50 min-w-0">
                   <p className="text-xs text-gray-500">Couldn't load image</p>

@@ -184,7 +184,7 @@ export const fetchOrderById = async (id) => {
   return data
 }
 
-export async function updateOrderStatus(id, status) {
+export async function updateOrderStatus(id, status, currentReceiptPath) {
   validateStatus(status)
   const { data, error } = await supabase
     .from('orders')
@@ -194,6 +194,34 @@ export async function updateOrderStatus(id, status) {
     .single()
 
   if (error) throw error
+
+  // Screenshot cleanup fires ONLY on these two exact statuses. 'shipped' is
+  // intentionally excluded — a shipped order may still need its payment proof
+  // until delivery is confirmed. Deliberately no 'terminal status' abstraction
+  // here: an explicit string match can never silently include 'shipped' or any
+  // future status. Future transitions only — no backfill of existing rows.
+  if ((status === 'delivered' || status === 'rejected') && currentReceiptPath) {
+    // Best-effort storage removal; the status UPDATE above is authoritative
+    // and must never fail because cleanup failed.
+    await removeReceiptFromStorage(currentReceiptPath)
+    try {
+      const { data: cleared, error: clearError } = await supabase
+        .from('orders')
+        .update({ receipt_path: null, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single()
+      if (clearError || !cleared) {
+        console.warn('[Admin Error] receipt_path clear failed (order status kept)')
+      }
+    } catch {
+      console.warn('[Admin Error] receipt_path clear failed (order status kept)')
+    }
+    // Sync the caller without a re-fetch: receipt_path is (or should have
+    // been) nulled even though the status UPDATE above did not touch it.
+    return { ...data, receipt_path: null }
+  }
+
   return data
 }
 
@@ -223,6 +251,39 @@ export async function updateOrderNotes(id, notes) {
   return data
 }
 
+/**
+ * Best-effort removal of a payment-screenshot object from the private
+ * `payment-screenshots` bucket. Never throws, never rejects — cleanup must
+ * never block or fail the primary DB operation (status UPDATE / order DELETE)
+ * it follows. Shared by:
+ * - deleteOrder — pre-existing behavior being preserved (de-duplicated here,
+ *   not new functionality)
+ * - updateOrderStatus on 'delivered'/'rejected' transitions (new)
+ */
+async function removeReceiptFromStorage(receiptPath) {
+  if (!receiptPath) return
+  // Normalise: strip any leading "receipts/" to avoid doubling the prefix
+  const cleanPath = receiptPath.startsWith('receipts/')
+    ? receiptPath
+    : `receipts/${receiptPath}`
+  try {
+    const { error } = await supabase.storage
+      .from('payment-screenshots')
+      .remove([cleanPath])
+    if (error) {
+      // Warn for observability only — never surface to the caller; a missing
+      // object (already removed / wrong path) must not fail the primary op.
+      console.warn(
+        `[Admin] Payment-screenshot removal failed for ${cleanPath} — primary DB operation already succeeded.`
+      )
+    }
+  } catch {
+    console.warn(
+      `[Admin] Payment-screenshot removal threw for ${cleanPath} — primary DB operation already succeeded.`
+    )
+  }
+}
+
 export async function deleteOrder(orderId, paymentScreenshotPath) {
   // Delete the order row only. ON DELETE CASCADE removes order_items AFTER
   // the BEFORE DELETE trigger has restored stock; deleting items first
@@ -240,18 +301,10 @@ export async function deleteOrder(orderId, paymentScreenshotPath) {
     throw new Error('Order not found or you do not have permission to delete it.')
   }
 
-  // Only after the DB delete succeeds, remove the payment screenshot
-  // (best-effort) so a failed delete can't leave the order without its proof.
-  if (paymentScreenshotPath) {
-    // Normalise: strip any leading "receipts/" to avoid doubling the prefix
-    const cleanPath = paymentScreenshotPath.startsWith('receipts/')
-      ? paymentScreenshotPath
-      : `receipts/${paymentScreenshotPath}`
-    await supabase.storage
-      .from('payment-screenshots')
-      .remove([cleanPath])
-    // Ignore storage errors — DB delete already succeeded
-  }
+  // Pre-existing behavior preserved — NOT new functionality: only after the
+  // DB delete succeeds, remove the payment screenshot (best-effort, never
+  // throws) so a failed delete can't leave the order without its proof.
+  await removeReceiptFromStorage(paymentScreenshotPath)
 }
 
 export async function getPaymentScreenshotSignedUrl(orderOrPath) {
